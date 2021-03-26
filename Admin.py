@@ -1,45 +1,78 @@
 from tkinter import *
-from DatabaseHandler import DB
+from tkinter import ttk
 from tkinter import messagebox
+from DatabaseHandler import DB
 import NewUserForm
 from Table import Table
+from ScrolledFrame import ScrolledFrame
 
 class Admin(Tk):
     def __init__(self, *args, **kwargs):
         Tk.__init__(self, *args, **kwargs)
         self.db = DB() # connect to the database
-        self.patient_edit_frame = Frame(self)
+
+        self.tab_control = ttk.Notebook(self)
+        self.patient_tab = ttk.Frame(self.tab_control)
+        self.search_tab = ttk.Frame(self.tab_control)
+
+        
         self.patient_edit_items = []
-        self.patient_edit_frame.pack()
+        self.patient_tab.pack()
         self.patient_edit = NewUserForm.new_user_form
         self.create_new_patient_form()
 
         self.patient_search_frame = Frame(self)
+        self.search_items = [] # will store all the widgets in the search that allows a .get() to fetch the data inside
+        self.strict_search = False
         self.patient_search_frame.pack()
         self.create_search_form()
 
+        self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
+        self.tab_control.add(self.search_tab, text="Patient Search")
+        self.tab_control.pack(expand=True, fill=BOTH)
+
     def create_search_form(self):
-        Label(self.patient_search_frame, text="Search for a patient").grid()
-        Table(self.patient_search_frame, rows=len(self.db.patients_cols), columns=5).grid()
+        Label(self.search_tab, text="Search for a patient").pack()
+        entry_frame = Frame(self.search_tab) # frame to hold the entries and search button in one line
+
+        for j, item in enumerate(self.patient_edit):
+            # create the correct widget based on the type specified
+            if item.get("type") == "entry":
+                # self.patient_edit_items.append(StringVar())# add it to the list - to get the values back later
+                Entry(entry_frame).grid(row=0, column=j)
+            elif item.get("type") == "dropdown":
+                # self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
+                OptionMenu(entry_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=0, column=j)
+
+            
+        entry_frame.pack()
+        # add a results label, button to search and a checkbox to toggle strict searching below the center of the table
+        Button(entry_frame, text="Search").grid(row=1, column=j//2)
+        Checkbutton(entry_frame, text="Strict Search", variable=self.strict_search, onvalue=True, offvalue=False).grid(row=1, column=1+j//2)
+        scrolled_frame = ScrolledFrame(self.search_tab)
+        Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.patient_edit]).pack()
+        scrolled_frame.pack()
         
     def create_new_patient_form(self):
-        Label(self.patient_edit_frame, text="Leave the patient ID blank to create a new patient.").grid()
+        form_frame = Frame(self.patient_tab) # inner frame to contain all of the widgets on the new patient tab
+        Label(form_frame, text="Leave the patient ID blank to create a new patient.").grid()
         for j, item in enumerate(self.patient_edit):
             # add a label to the grid and add (*) if it is a required field
-            Label(self.patient_edit_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
+            Label(form_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
 
             # create the correct widget based on the type specified
             if item.get("type") == "entry":
                 self.patient_edit_items.append(StringVar())# add it to the list - to get the values back later
-                Entry(self.patient_edit_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
+                Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
 
             elif item.get("type") == "dropdown":
                 self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
                 # create a drop down with the items specified
-                OptionMenu(self.patient_edit_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
+                OptionMenu(form_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
 
-        Button(self.patient_edit_frame, text="Get Patient Details", command=self.get_details).grid(row=j+2, column=0, sticky="W")
-        Button(self.patient_edit_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
+        Button(form_frame, text="Get Patient Details", command=self.get_details).grid(row=j+2, column=0, sticky="W")
+        Button(form_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
+        form_frame.pack(expand=True)
 
     def save(self):
         data = {}
