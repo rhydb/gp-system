@@ -74,10 +74,10 @@ class Table(Frame):
             for i in range(self.rows):
                 self.set_cell(column, i, value)
     def set_row(self, row_index, row_values):
-        for i in range(self.columns):
+        for i in range(len(row_values)):
             # go through each column and set the specified row's entry box
             # to the corresponding value
-            self.table[i][row_index].set(row_values[i])
+            self.set_cell(i, row_index, row_values[i])
     def add_row(self):
         for i in range(self.columns):
             self.table[i].append(Entry(self))

@@ -13,10 +13,14 @@ class Admin(Tk):
         self.patient_edit_frame.pack()
         self.patient_edit = NewUserForm.new_user_form
         self.create_new_patient_form()
+
+        self.patient_search_frame = Frame(self)
+        self.patient_search_frame.pack()
         self.create_search_form()
 
     def create_search_form(self):
-        pass
+        Label(self.patient_search_frame, text="Search for a patient").grid()
+        Table(self.patient_search_frame, rows=len(self.db.patients_cols), columns=5).grid()
         
     def create_new_patient_form(self):
         Label(self.patient_edit_frame, text="Leave the patient ID blank to create a new patient.").grid()
@@ -38,12 +42,6 @@ class Admin(Tk):
         Button(self.patient_edit_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
 
     def save(self):
-        # TODO:
-        # if the patient id is not present
-        #   - attempt to create a new patient
-        # else:
-        #   - attempt to update the patient details using the patient id 
-        # messagebox with teh result
         data = {}
         for j, item in enumerate(self.patient_edit):
             if self.patient_edit_items[j].get() == "":
