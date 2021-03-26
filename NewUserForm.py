@@ -1,3 +1,5 @@
+# just so that Admin.py isnt clogged up by this
+# should be re-added on release
 new_user_form = [
     {
         "name": "Patient ID",
