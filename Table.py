@@ -73,8 +73,26 @@ class Table(Frame):
         else:
             for i in range(self.rows):
                 self.set_cell(column, i, value)
+    def set_row(self, row_index, row_values):
+        for i in range(self.columns):
+            # go through each column and set the specified row's entry box
+            # to the corresponding value
+            self.table[i][row_index].set(row_values[i])
     def add_row(self):
         for i in range(self.columns):
             self.table[i].append(Entry(self))
             self.table[i][self.rows].grid(row=self.rows + (1 if self.headers else 0), column=i)
         self.rows += 1
+    def set_row_count(self, row_count):
+        if (row_count < self.rows):
+            # remove rows
+            for i in range(self.rows - row_count):
+                # go through every column and remove the last item until the row count is right
+                for j in range(self.columns):
+                    self.table[j][-1].destroy() # destroy the entry box to remove it from the screen
+                    self.table[j].pop() # remove the entry box from the list
+        else:
+            # add rows
+            for _ in range(row_count - self.rows): # add the extra rows
+                self.add_row()
+        self.rows = row_count # update the row count
