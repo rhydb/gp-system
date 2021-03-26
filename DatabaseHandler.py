@@ -74,11 +74,11 @@ class DB:
             good = True
             for search in params:
                 if strict:
-                    if row[search[0]] != search[1]: # strict search - they must match perfectly (good for logging in)
+                    if str(row[search[0]]) != str(search[1]): # strict search - they must match perfectly (good for logging in)
                         good = False
                         break # check failed - no point checking the other columns
                 else:
-                    if search[1] not in row[search[0]]: # more flexible search - the column simply has to contain the seartch (better for general searching)
+                    if str(search[1]) not in str(row[search[0]]): # more flexible search - the column simply has to contain the seartch (better for general searching)
                         good = False
                         break # check failed - no point checking the other columns
             if good:

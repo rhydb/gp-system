@@ -25,12 +25,22 @@ class Admin(Tk):
         self.search_items = [] # will store all the widgets in the search that allows a .get() to fetch the data inside
         self.strict_search = False
         self.patient_search_frame.pack()
+        self.search_table = Table
         self.create_search_form()
 
         self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
         self.tab_control.add(self.search_tab, text="Patient Search")
         self.tab_control.pack(expand=True, fill=BOTH)
-
+    
+    def search(self):
+        # make a list of all the search entries that arent empty and
+        # record which column they refer to - needed to search the databse
+        queries = [[j, item.get()] for j, item in enumerate(self.search_items) if item.get()]
+        results = self.db.search("patients", queries, strict=self.strict_search)
+        self.search_table.set_row_count(len(results))
+        for j, result in enumerate(results):
+            self.search_table.set_row(j, result)
+        
     def create_search_form(self):
         Label(self.search_tab, text="Search for a patient").pack()
         entry_frame = Frame(self.search_tab) # frame to hold the entries and search button in one line
@@ -38,19 +48,23 @@ class Admin(Tk):
         for j, item in enumerate(self.patient_edit):
             # create the correct widget based on the type specified
             if item.get("type") == "entry":
-                # self.patient_edit_items.append(StringVar())# add it to the list - to get the values back later
-                Entry(entry_frame).grid(row=0, column=j)
+                # TODO: find a way to append a string var at the end of the if checks
+                self.search_items.append(StringVar())# add it to the list - to get the values back later
+                Entry(entry_frame, textvar=self.search_items[-1]).grid(row=0, column=j)
             elif item.get("type") == "dropdown":
-                # self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
-                OptionMenu(entry_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=0, column=j)
+                self.search_items.append(StringVar()) # add it to the list - to get the values back later
+                OptionMenu(entry_frame, self.search_items[-1], *item.get("menu_items")).grid(row=0, column=j)
 
-            
         entry_frame.pack()
         # add a results label, button to search and a checkbox to toggle strict searching below the center of the table
-        Button(entry_frame, text="Search").grid(row=1, column=j//2)
-        Checkbutton(entry_frame, text="Strict Search", variable=self.strict_search, onvalue=True, offvalue=False).grid(row=1, column=1+j//2)
+        Button(entry_frame, text="Search", command=self.search).grid(row=1, column=j//2)
+        Checkbutton(entry_frame, text="Strict Search", variable=self.strict_search, onvalue=True, offvalue=False, command=self.toggle_strict_search).grid(row=1, column=1+j//2)
         scrolled_frame = ScrolledFrame(self.search_tab)
-        Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.patient_edit]).pack()
+        # create a table with enough columns and headers for each of the column names
+        # it gets the column count from the database handler and the names from the patient edit form
+        # TODO: get the column headers from the data base handler as well
+        self.search_table = Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.patient_edit])
+        self.search_table.pack()
         scrolled_frame.pack()
         
     def create_new_patient_form(self):
@@ -62,6 +76,7 @@ class Admin(Tk):
 
             # create the correct widget based on the type specified
             if item.get("type") == "entry":
+                # TODO: append a string var at end of if statment instead of both
                 self.patient_edit_items.append(StringVar())# add it to the list - to get the values back later
                 Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
 
@@ -111,3 +126,7 @@ class Admin(Tk):
                 return
             for j, info in enumerate(result[0]):
                 self.patient_edit_items[j].set(info)
+
+    def toggle_strict_search(self):
+        # used when the checkbox is clicked to toggle strict searchign
+        self.strict_search = not self.strict_search

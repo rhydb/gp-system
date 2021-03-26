@@ -58,7 +58,7 @@ class Table(Frame):
 
     def set_cell(self, column: int, row: int, value: str):
         self.table[column][row].delete(0,END)
-        self.table[column][row].insert(0,value)
+        self.table[column][row].insert(0,str(value))
 
     def set_column(self, column, value):
         if type(column) is str:
