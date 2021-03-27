@@ -33,7 +33,7 @@ class Login(Tk):
             # destory the current window becuase
             # a new window is being opened
             self.destroy()
-            db.destroy()
+            self.db.destroy()
             if login_result == "admin":
                 admin = Admin()
                 admin.mainloop()
