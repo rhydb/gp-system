@@ -36,7 +36,16 @@ class DB:
                 city TEXT NOT NULL
             )
         ''')
-        # self.cursor.execute('''DELETE FROM patients''')
+
+        # appointments table
+        self.cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS `appointments` (
+                appointment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                patient_id INTEGER NOT NULL,
+                practitioner TEXT NOT NULL,
+                location TEXT
+            )
+        ''')
         self.conn.commit() # save to the database
 ##################################### 
 
@@ -74,7 +83,7 @@ class DB:
             good = True
             for search in params:
                 if strict:
-                    if str(row[search[0]]) != str(search[1]): # strict search - they must match perfectly (good for logging in)
+                    if str(row[search[0]]) != str(search[1]): # strict search - they must match perfectly
                         good = False
                         break # check failed - no point checking the other columns
                 else:
@@ -137,6 +146,7 @@ class DB:
         ''')
         self.conn.commit() # save to the database
         return f"Created Patient with ID: {self.cursor.lastrowid}"
+
 
     def create_account(self, username, password, usertype):
         # attempt to add the user to the databse
