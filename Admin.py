@@ -11,14 +11,16 @@ class Admin(Tk):
         Tk.__init__(self, *args, **kwargs)
         self.db = DB() # connect to the database
 
-        self.tab_control = ttk.Notebook(self)
+        # create the tabs
+        self.tab_control = ttk.Notebook(self) # the tab manager that holds each 'button' to switch tab
+        # these act as frames to place items into
         self.patient_tab = ttk.Frame(self.tab_control)
         self.search_tab = ttk.Frame(self.tab_control)
-
+        self.appointment_tab = ttk.Frame(self.tab_control)
         
-        self.patient_edit_items = []
+        self.patient_edit_items = [] # each form entry will store a stringvar() in here which can be used to fetch the input
         self.patient_tab.pack()
-        self.patient_edit = NewUserForm.new_user_form
+        self.patient_edit = NewUserForm.new_user_form # TODO: add the form back in
         self.create_new_patient_form()
 
         self.patient_search_frame = Frame(self)
@@ -40,6 +42,8 @@ class Admin(Tk):
         self.search_table.set_row_count(len(results))
         for j, result in enumerate(results):
             self.search_table.set_row(j, result)
+
+
         
     def create_search_form(self):
         Label(self.search_tab, text="Search for a patient").pack()
@@ -114,17 +118,21 @@ class Admin(Tk):
             # patient id was omitted -> make a new patient
             messagebox.showinfo(title="Info", message=self.db.create_patient(data))
 
+    # search for a patient using the id, and set all the entries to the patient's details to allow editing
+    # uses a recursive binary search as the patient id is a primary key and is sorted
     def get_details(self):
+        # try and cast the input to an integer as the patient id is an integer
         try:
             patient_id = int(self.patient_edit_items[0].get())
         except Exception:
             messagebox.showerror(title="Error", message="Patient ID must be a number")
         else:
-            result = self.db.search("patients", [[0, patient_id]], strict=True)
-            if len(result) == 0:
+            # casting to an integer was a success, proceed with the search
+            result = self.db.b_search_patient(patient_id)
+            if not result:
                 messagebox.showinfo(title="Info", message="Could not find a patient with that ID")
                 return
-            for j, info in enumerate(result[0]):
+            for j, info in enumerate(result):
                 self.patient_edit_items[j].set(info)
 
     def toggle_strict_search(self):

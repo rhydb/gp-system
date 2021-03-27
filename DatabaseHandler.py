@@ -66,6 +66,9 @@ class DB:
             ''')
         self.conn.commit() # save to the database
 
+    # a linear search to search for any matches
+    # this is needed instead of a binary search as not all the data is sorted
+    # and we need multiple results and to check multiple things at a time
     def search(self, table, params: list, strict=False):
         # basic check that all the items in the list are lists and contain two items
         # format to search: [column index, search value]
@@ -93,7 +96,23 @@ class DB:
             if good:
                 results.append(row) # good was never set to false so the row matches all of the searches
         return results
-
+    
+    # a recursive binary search to search for a specific patient using an id
+    # since the id is the primary key and is sorted a binary search is appropiate
+    def b_search_patient(self, patient_id, array=None, start=0, end=0):
+        if array: # check if this is a recursive call or the first call
+            if start > end: # when this occurs the list has been searched and the item is not in the list
+                return
+            mid = (end+start)//2 # the middle position
+            if patient_id == array[mid][0]:
+                return array[mid] # found the item
+            if patient_id > array[mid][0]:
+                return self.b_search_patient(patient_id, array=array, start=mid+1, end=end) # the middle is less than the search, use the right half
+            return self.b_search_patient(patient_id, array=array, start=start, end=mid-1) # the middle is greater than the search, use the left half
+        # it is the first call, set up the paramaters and begin the search
+        data = self.get_all("patients")
+        return self.b_search_patient(patient_id, array=data, start=0, end=len(data)-1)
+    
     def update_patient(self, data):
         everything = self.get_all("patients") # get the entire table to search through and find the row that needs updating
         # delete the table
@@ -146,7 +165,6 @@ class DB:
         ''')
         self.conn.commit() # save to the database
         return f"Created Patient with ID: {self.cursor.lastrowid}"
-
 
     def create_account(self, username, password, usertype):
         # attempt to add the user to the databse
