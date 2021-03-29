@@ -17,12 +17,14 @@ class Admin(Tk):
         self.patient_tab = ttk.Frame(self.tab_control)
         self.search_tab = ttk.Frame(self.tab_control)
         self.appointment_tab = ttk.Frame(self.tab_control)
-        
+
+        # setup for the patient details menu
         self.patient_edit_items = [] # each form entry will store a stringvar() in here which can be used to fetch the input
         self.patient_tab.pack()
         self.patient_edit = NewUserForm.new_user_form # TODO: add the form back in
         self.create_new_patient_form()
 
+        # setup for the search tab
         self.patient_search_frame = Frame(self)
         self.search_items = [] # will store all the widgets in the search that allows a .get() to fetch the data inside
         self.strict_search = False
@@ -30,9 +32,16 @@ class Admin(Tk):
         self.search_table = Table
         self.create_search_form()
 
+        self.create_appointments_form()
+
         self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
         self.tab_control.add(self.search_tab, text="Patient Search")
+        self.tab_control.add(self.appointment_tab, text="Appointments")
         self.tab_control.pack(expand=True, fill=BOTH)
+
+    def create_appointments_form(self):
+        table = Table(self.appointment_tab, rows=5, columns=len(self.db.appointment_cols), show_headers=True, headers=self.db.appointment_cols)
+        table.pack()
     
     def search(self):
         # make a list of all the search entries that arent empty and
@@ -79,13 +88,11 @@ class Admin(Tk):
             Label(form_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
 
             # create the correct widget based on the type specified
+            self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
             if item.get("type") == "entry":
                 # TODO: append a string var at end of if statment instead of both
-                self.patient_edit_items.append(StringVar())# add it to the list - to get the values back later
                 Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
-
             elif item.get("type") == "dropdown":
-                self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
                 # create a drop down with the items specified
                 OptionMenu(form_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
 
@@ -136,5 +143,5 @@ class Admin(Tk):
                 self.patient_edit_items[j].set(info)
 
     def toggle_strict_search(self):
-        # used when the checkbox is clicked to toggle strict searchign
+        # used when the checkbox is clicked to toggle strict searching
         self.strict_search = not self.strict_search
