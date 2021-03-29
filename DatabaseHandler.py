@@ -38,12 +38,15 @@ class DB:
         ''')
 
         # appointments table
+        self.appointment_cols = ("appointment_id", "patient_id", "pracitioner", "location", "date", "time")
         self.cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS `appointments` (
                 appointment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 patient_id INTEGER NOT NULL,
                 practitioner TEXT NOT NULL,
-                location TEXT
+                location TEXT NOT NULL,
+                date DATE NOT NULL,
+                time INT NOT NULL
             )
         ''')
         self.conn.commit() # save to the database
