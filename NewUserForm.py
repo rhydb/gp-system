@@ -2,50 +2,60 @@
 # should be re-added on release
 new_user_form = [
     {
-        "name": "Patient ID",
+        "name": "patient_id",
+        "display_name": "Patient ID",
         "type": "entry"
     },
     {
-        "name": "Name",
+        "name": "name",
+        "display_name": "Name",
         "type": "entry",
         "required": True
     },
     {
-        "name": "Date of Birth",
+        "name": "date_of_birth",
+        "display_name": "Date of Birth",
         "type": "entry",
         "required": True
     },
     {
-        "name": "Gender",
+        "name": "gender",
+        "display_name": "Gender",
         "required": True,
         "type": "dropdown",
         "menu_items": ["Male", "Female"]
     },
     {
-        "name": "E-Mail",
+        "name": "email",
+        "display_name": "E-Mail",
         "type": "entry"
     },
     {
-        "name": "Phone",
+        "name": "phone",
+        "display_name": "Phone",
         "type": "entry"
     },
     {
-        "name": "Post Code",
+        "name": "post_code",
+        "display_name": "Post Code",
         "required": True,
         "type": "entry"
     },
     {
-        "name": "Street",
+        "name": "street",
+        "display_name": "Street",
         "required": True,
         "type": "entry"
     },
     {
-        "name": "House",
+        "name": "house",
+        "display_name": "House",
         "required": True,
         "type": "entry",
     },
     {
-        "name": "City",
+        "name": "city",
+        "display_name": "City",
         "required": True,
         "type": "entry"
     }

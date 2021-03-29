@@ -4,6 +4,7 @@ from tkinter import messagebox
 from DatabaseHandler import DB
 import NewUserForm
 from Table import Table
+from Form import Form
 from ScrolledFrame import ScrolledFrame
 
 class Admin(Tk):
@@ -81,24 +82,25 @@ class Admin(Tk):
         scrolled_frame.pack()
         
     def create_new_patient_form(self):
-        form_frame = Frame(self.patient_tab) # inner frame to contain all of the widgets on the new patient tab
-        Label(form_frame, text="Leave the patient ID blank to create a new patient.").grid()
-        for j, item in enumerate(self.patient_edit):
-            # add a label to the grid and add (*) if it is a required field
-            Label(form_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
+        #Label(form_frame, text="Leave the patient ID blank to create a new patient.").grid()
+        new_frame = Form(self.patient_tab, data=self.patient_edit, display="block")
+        new_frame.pack(expand=True)
+        # for j, item in enumerate(self.patient_edit):
+        #     # add a label to the grid and add (*) if it is a required field
+        #     Label(form_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
 
-            # create the correct widget based on the type specified
-            self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
-            if item.get("type") == "entry":
-                # TODO: append a string var at end of if statment instead of both
-                Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
-            elif item.get("type") == "dropdown":
-                # create a drop down with the items specified
-                OptionMenu(form_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
+        #     # create the correct widget based on the type specified
+        #     self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
+        #     if item.get("type") == "entry":
+        #         # TODO: append a string var at end of if statment instead of both
+        #         Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
+        #     elif item.get("type") == "dropdown":
+        #         # create a drop down with the items specified
+        #         OptionMenu(form_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
 
-        Button(form_frame, text="Get Patient Details", command=self.get_details).grid(row=j+2, column=0, sticky="W")
-        Button(form_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
-        form_frame.pack(expand=True)
+        # Button(form_frame, text="Get Patient Details", command=self.get_details).grid(row=j+2, column=0, sticky="W")
+        # Button(form_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
+        # form_frame.pack(expand=True)
 
     def save(self):
         data = {}
