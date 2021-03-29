@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 from DatabaseHandler import DB
-import NewUserForm
 from Table import Table
 from Form import Form
 from ScrolledFrame import ScrolledFrame
@@ -20,15 +19,20 @@ class Admin(Tk):
         self.appointment_tab = ttk.Frame(self.tab_control)
 
 
-        self.patient_edit = NewUserForm.new_user_form # TODO: add the form back in
-        
-        # setup for the patient details menu
+        # setup for the patient tab
         Label(self.patient_tab, text="Leave the patient ID blank to create a new patient.").pack()
-        self.patient_form = Form(self.patient_tab, data=self.patient_edit, display="block")
+        self.patient_form = Form(self.patient_tab, data=self.db.patient_form, display="block")
         self.patient_form.pack(expand=True)
         Button(self.patient_form, text="Get Patient Details", command=self.get_patient_details).grid(sticky="W")
         Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=1, sticky="E")
         self.patient_tab.pack()
+
+        # setup for the appointments tab
+        self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form, display="inline")
+        Button(self.appointments_form, text="Book").grid(row=1, column=len(self.db.appointment_form))
+        self.appointments_form.pack()
+        appointments_table = Table(self.appointment_tab, rows=3, columns=len(self.db.appointment_form), show_headers=True, headers=[item["display_name"] for item in self.db.appointment_form])
+        appointments_table.pack()
 
         # setup for the search tab
         self.patient_search_frame = Frame(self)
@@ -38,17 +42,11 @@ class Admin(Tk):
         self.search_table = Table
         self.create_search_form()
 
-        self.create_appointments_form()
-
         self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
         self.tab_control.add(self.search_tab, text="Patient Search")
         self.tab_control.add(self.appointment_tab, text="Appointments")
         self.tab_control.pack(expand=True, fill=BOTH)
 
-    def create_appointments_form(self):
-        table = Table(self.appointment_tab, rows=5, columns=len(self.db.appointment_cols), show_headers=True, headers=self.db.appointment_cols)
-        table.pack()
-    
     def search(self):
         # make a list of all the search entries that arent empty and
         # record which column they refer to - needed to search the databse
@@ -64,7 +62,7 @@ class Admin(Tk):
         Label(self.search_tab, text="Search for a patient").pack()
         entry_frame = Frame(self.search_tab) # frame to hold the entries and search button in one line
 
-        for j, item in enumerate(self.patient_edit):
+        for j, item in enumerate(self.db.patient_form):
             # create the correct widget based on the type specified
             if item.get("type") == "entry":
                 # TODO: find a way to append a string var at the end of the if checks
@@ -82,7 +80,7 @@ class Admin(Tk):
         # create a table with enough columns and headers for each of the column names
         # it gets the column count from the database handler and the names from the patient edit form
         # TODO: get the column headers from the data base handler as well
-        self.search_table = Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.patient_edit])
+        self.search_table = Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.db.patient_form])
         self.search_table.pack()
         scrolled_frame.pack()
         

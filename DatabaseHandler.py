@@ -5,7 +5,106 @@ class DB:
         self.database = "databse.db"
         self.conn = sql.connect(self.database)
         self.cursor = self.conn.cursor()
+        self.patient_form = [
+            {
+                "name": "patient_id",
+                "display_name": "Patient ID",
+                "type": "entry"
+            },
+            {
+                "name": "name",
+                "display_name": "Name",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "date_of_birth",
+                "display_name": "Date of Birth",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "gender",
+                "display_name": "Gender",
+                "required": True,
+                "type": "dropdown",
+                "menu_items": ["Male", "Female"]
+            },
+            {
+                "name": "email",
+                "display_name": "E-Mail",
+                "type": "entry"
+            },
+            {
+                "name": "phone",
+                "display_name": "Phone",
+                "type": "entry"
+            },
+            {
+                "name": "post_code",
+                "display_name": "Post Code",
+                "required": True,
+                "type": "entry"
+            },
+            {
+                "name": "street",
+                "display_name": "Street",
+                "required": True,
+                "type": "entry"
+            },
+            {
+                "name": "house",
+                "display_name": "House",
+                "required": True,
+                "type": "entry",
+            },
+            {
+                "name": "city",
+                "display_name": "City",
+                "required": True,
+                "type": "entry"
+            }
+        ]
 
+        self.appointment_form = [
+            {
+                "name": "appointment_id",
+                "display_name": "Appointment ID",
+                "type": "entry"
+            },
+            {
+                "name": "patient_id",
+                "display_name": "Patient ID",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "pracitioner",
+                "display_name": "Practitioner",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "location",
+                "display_name": "Location",
+                "type": "dropdown",
+                "menu_items": ["On-site", "On-line"],
+                "required": True
+            },
+            {
+                "name": "date",
+                "display_name": "Date",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "time",
+                "display_name": "Time",
+                "type": "entry",
+                "required": True
+            }
+            
+        ]
 #####################################
         '''
         must check that all the tables exist before being able to access them
