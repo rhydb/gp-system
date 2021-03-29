@@ -11,7 +11,7 @@ class Form(Frame):
         for j, item in enumerate(data): # data is an array of dictionaries
             # go through each item and build the correct widget
             self.form_items[item.get("name")] = StringVar()
-            Label(self, text=(item.get("display_name"))).grid(row=(j if display == "block" else 0), column=(0 if display == "block" else j))
+            Label(self, text=item.get("display_name") + ("*" if item.get("required") else " ")).grid(row=(j if display == "block" else 0), column=(0 if display == "block" else j))
             if item.get("type") == "entry":
                 Entry(self, textvar=self.form_items[item.get("name")]).grid(row=(j if display == "block" else 1), column=(1 if display == "block" else j))
             elif item.get("type") == "dropdown":
@@ -24,10 +24,13 @@ class Form(Frame):
         return True
     def get(self, name):
         return self.form_items.get(name).get() # return the given item's content
-    def get_all(self):
-        return [item.get() for item in self.form_items.values()] # make a list out of all the items' stringvar's
-    def set(self, data):
+    def get_all(self, allow_empty=True):
+        return [item.get() for item in self.form_items.values() if allow_empty is True or item.get()] # make a list out of all the items' stringvar's
+    def set_all(self, data):
         for j, item in enumerate(self.form_items):
             if j >= len(data):
                 return
             self.form_items[item].set(data[j])
+
+    def set(self, item, value):
+        self.form_items[item].set(value)

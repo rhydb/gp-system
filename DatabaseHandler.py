@@ -28,7 +28,7 @@ class DB:
                 "display_name": "Gender",
                 "required": True,
                 "type": "dropdown",
-                "menu_items": ["Male", "Female"]
+                "menu_items": ["", "Male", "Female"]
             },
             {
                 "name": "email",
@@ -79,16 +79,17 @@ class DB:
                 "required": True
             },
             {
-                "name": "pracitioner",
+                "name": "practitioner",
                 "display_name": "Practitioner",
-                "type": "entry",
+                "type": "dropdown",
+                "menu_items": ["", "Doctor/Nurse", "Therapist"],
                 "required": True
             },
             {
                 "name": "location",
                 "display_name": "Location",
                 "type": "dropdown",
-                "menu_items": ["On-site", "On-line"],
+                "menu_items": ["", "On-site", "On-line"],
                 "required": True
             },
             {
@@ -250,25 +251,17 @@ class DB:
         self.conn.commit() # save to the database
         return "Saved" if found else "Could not find that patient"
 
-    def insert_row(self, table, values: tuple):
-        self.cursor.execute(f'''
-            INSERT OR IGNORE INTO `{table}`
-            VALUES {values}
-        ''')
-        self.conn.commit() # save to the database
-        return self.cursor.lastrowid
-
-    def create_patient(self, data):
+    def insert(self, data, table):
         # attempt to add the patient into the table
         # will ignore if the patient  already exists in the databse or
         # if another error occurs
         self.cursor.execute(f'''
-            INSERT OR IGNORE INTO `patients`
+            INSERT OR IGNORE INTO `{table}`
             {tuple(data)}
             VALUES {tuple(data.values())}
         ''')
         self.conn.commit() # save to the database
-        return f"Created Patient with ID: {self.cursor.lastrowid}"
+        return self.cursor.lastrowid
 
     def create_account(self, username, password, usertype):
         # attempt to add the user to the databse
