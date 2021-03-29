@@ -117,6 +117,7 @@ class DB:
         return self.b_search_patient(patient_id, array=data, start=0, end=len(data)-1)
     
     def update_patient(self, data):
+        found = False
         everything = self.get_all("patients") # get the entire table to search through and find the row that needs updating
         # delete the table
         self.cursor.execute(f'''
@@ -126,6 +127,7 @@ class DB:
             row = list(row) # cast to a list to enable editing
             if row[0] == data.get("patient_id"):
                 # found the patient
+                found = True
                 for column, value in data.items():
                      # go through each column specified in the arguments and update the correct column
                     try:
@@ -147,7 +149,7 @@ class DB:
                 VALUES {tuple(row)}
             ''')
         self.conn.commit() # save to the database
-        return "Saved"
+        return "Saved" if found else "Could not find that patient"
 
     def insert_row(self, table, values: tuple):
         self.cursor.execute(f'''

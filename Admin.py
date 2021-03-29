@@ -19,11 +19,16 @@ class Admin(Tk):
         self.search_tab = ttk.Frame(self.tab_control)
         self.appointment_tab = ttk.Frame(self.tab_control)
 
-        # setup for the patient details menu
-        self.patient_edit_items = [] # each form entry will store a stringvar() in here which can be used to fetch the input
-        self.patient_tab.pack()
+
         self.patient_edit = NewUserForm.new_user_form # TODO: add the form back in
-        self.create_new_patient_form()
+        
+        # setup for the patient details menu
+        Label(self.patient_tab, text="Leave the patient ID blank to create a new patient.").pack()
+        self.patient_form = Form(self.patient_tab, data=self.patient_edit, display="block")
+        self.patient_form.pack(expand=True)
+        Button(self.patient_form, text="Get Patient Details", command=self.get_patient_details).grid(sticky="W")
+        Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=1, sticky="E")
+        self.patient_tab.pack()
 
         # setup for the search tab
         self.patient_search_frame = Frame(self)
@@ -81,47 +86,22 @@ class Admin(Tk):
         self.search_table.pack()
         scrolled_frame.pack()
         
-    def create_new_patient_form(self):
-        #Label(form_frame, text="Leave the patient ID blank to create a new patient.").grid()
-        new_frame = Form(self.patient_tab, data=self.patient_edit, display="block")
-        new_frame.pack(expand=True)
-        # for j, item in enumerate(self.patient_edit):
-        #     # add a label to the grid and add (*) if it is a required field
-        #     Label(form_frame, text=(item.get("name") + (" (*)" if item.get("required") else ""))).grid(row=j+1, column=0)
-
-        #     # create the correct widget based on the type specified
-        #     self.patient_edit_items.append(StringVar()) # add it to the list - to get the values back later
-        #     if item.get("type") == "entry":
-        #         # TODO: append a string var at end of if statment instead of both
-        #         Entry(form_frame, textvariable=self.patient_edit_items[-1]).grid(row=j+1, column=1)
-        #     elif item.get("type") == "dropdown":
-        #         # create a drop down with the items specified
-        #         OptionMenu(form_frame, self.patient_edit_items[-1], *item.get("menu_items")).grid(row=j+1, column=1, sticky="E")
-
-        # Button(form_frame, text="Get Patient Details", command=self.get_details).grid(row=j+2, column=0, sticky="W")
-        # Button(form_frame, text="Save/Register", command=self.save).grid(row=j+2, column=1, sticky="E")
-        # form_frame.pack(expand=True)
-
-    def save(self):
+    def save_patient(self):
+        if not self.patient_form.completed_required():
+            messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
+            return
         data = {}
-        for j, item in enumerate(self.patient_edit):
-            if self.patient_edit_items[j].get() == "":
-                if item.get("required") is True and self.patient_edit_items[j].get() == "" and self.patient_edit_items[0].get() == "":
-                    # it is required but blank AND the patient ID is empty,
-                    # meaning a new user is being created therefore everything must be filled in
-                    messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
-                    return # cannot proceed
-                # format the name of the form item so that it can be used as a datbase column then
-                # set the key value pair to the name with the contents of the corresponding field in the form
-            else:
-                data[item["name"].lower().replace(" ", "_").replace("-", "")] = self.patient_edit_items[j].get() 
+        for key, value in self.patient_form.form_items.items():
+            if value.get():
+                data[key] = value.get()
 
-        if self.patient_edit_items[0].get() != "":
+        if data.get("patient_id"):
             try:
                 data["patient_id"] = int(data.get("patient_id"))
             except Exception:
                 messagebox.showerror(title="Error", message="Invalid Patient ID")
             else:
+                # id was provided and the id was an integer
                 messagebox.showinfo(title="Info", message=self.db.update_patient(data))
         else:
             # patient id was omitted -> make a new patient
@@ -129,10 +109,10 @@ class Admin(Tk):
 
     # search for a patient using the id, and set all the entries to the patient's details to allow editing
     # uses a recursive binary search as the patient id is a primary key and is sorted
-    def get_details(self):
+    def get_patient_details(self):
         # try and cast the input to an integer as the patient id is an integer
         try:
-            patient_id = int(self.patient_edit_items[0].get())
+            patient_id = int(self.patient_form.get("patient_id"))
         except Exception:
             messagebox.showerror(title="Error", message="Patient ID must be a number")
         else:
@@ -141,8 +121,7 @@ class Admin(Tk):
             if not result:
                 messagebox.showinfo(title="Info", message="Could not find a patient with that ID")
                 return
-            for j, info in enumerate(result):
-                self.patient_edit_items[j].set(info)
+            self.patient_form.set(result)
 
     def toggle_strict_search(self):
         # used when the checkbox is clicked to toggle strict searching
