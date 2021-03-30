@@ -15,44 +15,42 @@ class Admin(Tk):
         self.tab_control = ttk.Notebook(self) # the tab manager that holds each 'button' to switch tab
         # these act as frames to place items into
         self.patient_tab = ttk.Frame(self.tab_control)
-        self.search_tab = ttk.Frame(self.tab_control)
         self.appointment_tab = ttk.Frame(self.tab_control)
 
 
         # setup for the patient tab
-        Label(self.patient_tab, text="Leave the patient ID blank to create a new patient.").pack()
-        self.patient_form = Form(self.patient_tab, data=self.db.patient_form, display="block")
-        self.patient_form.pack(expand=True)
-        Button(self.patient_form, text="Get Patient Details", command=self.get_patient_details).grid(sticky="W")
-        Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=1, sticky="E")
+        patient_table_scroll = ScrolledFrame(self.patient_tab)
+        self.patient_table = Table(patient_table_scroll.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["display_name"] for item in self.db.patient_form], widths=[item["width"] for item in self.db.patient_form])
+        self.patient_table.pack()
+        patient_table_scroll.grid(row=0, column=0)
+
+        self.patient_form = Form(self.patient_tab, data=self.db.patient_form)
+        self.patient_form.grid(row=0, column=1)
+        Button(self.patient_form, text="Get Patient Details", command=self.get_patient_details).grid()
+        Button(self.patient_form, text="Search", command=self.search_patient).grid(row=len(self.patient_form.form_items), column=1)
+        self.strict_search = False
+        Checkbutton(self.patient_form, text="Strict", variable=self.strict_search, onvalue=True, offvalue=False, command=self.toggle_strict_search).grid(row=len(self.patient_form.form_items)+1, column=1)
+        Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=2)
         self.patient_tab.pack()
 
         # setup for the appointments tab
-        self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form)
-        Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=1, column=len(self.db.appointment_form))
-        Button(self.appointments_form, text="Search", command=self.search_appointment).grid(row=1, column=len(self.db.appointment_form)+1)
-        self.appointments_form.pack()
         appointments_scrolled_frame = ScrolledFrame(self.appointment_tab)
-        self.appointments_table = Table(appointments_scrolled_frame, rows=3, columns=len(self.db.appointment_form), show_headers=True, headers=[item["display_name"] for item in self.db.appointment_form])
+        self.appointments_table = Table(appointments_scrolled_frame, rows=3, columns=len(self.db.appointment_form), show_headers=True, headers=[item["display_name"] for item in self.db.appointment_form], widths=[item["width"] for item in self.db.appointment_form])
         self.appointments_table.pack()
-        appointments_scrolled_frame.pack()
+        appointments_scrolled_frame.grid(row=0, column=0)
+        self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form)
+        Button(self.appointments_form, text="Search", command=self.search_appointment).grid(row=len(self.db.appointment_form), column=0)
+        Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=len(self.db.appointment_form), column=1)
+        self.appointments_form.grid(row=0, column=1)
 
-        # setup for the search tab
-        self.patient_search_frame = Frame(self)
-        self.search_items = [] # will store all the widgets in the search that allows a .get() to fetch the data inside
-        self.strict_search = False
-        self.patient_search_frame.pack()
-        self.search_table = Table
-        self.create_search_form()
+        
 
         self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
-        self.tab_control.add(self.search_tab, text="Patient Search")
         self.tab_control.add(self.appointment_tab, text="Appointments")
         self.tab_control.pack(expand=True, fill=BOTH)
 
     def book_appointment(self):
         self.appointments_form.set("appointment_id", "")
-        print(self.appointments_form.get_all())
         if not self.appointments_form.completed_required():
             messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
             return
@@ -79,15 +77,17 @@ class Admin(Tk):
         for j, result in enumerate(results):
             self.appointments_table.set_row(j, result)
 
-    def search(self):
+    def search_patient(self):
         # make a list of all the search entries that arent empty and
         # record which column they refer to - needed to search the databse
-        queries = [[j, item.get()] for j, item in enumerate(self.search_items) if item.get()]
+        queries = [[j, item.get()] for j, item in enumerate(self.patient_form.form_items.values()) if item.get()]
         results = self.db.search("patients", queries, strict=self.strict_search)
-        self.search_table.set_row_count(len(results))
-        for j, result in enumerate(results):
-            self.search_table.set_row(j, result)
-
+        if results:
+            self.patient_table.set_row_count(len(results))
+            for j, result in enumerate(results):
+                self.patient_table.set_row(j, result)
+        else:
+            messagebox.showinfo(title="No results", message="Could not find any results for that query")
 
         
     def create_search_form(self):
@@ -105,7 +105,6 @@ class Admin(Tk):
         entry_frame.pack()
         # add a results label, button to search and a checkbox to toggle strict searching below the center of the table
         Button(entry_frame, text="Search", command=self.search).grid(row=1, column=j//2)
-        Checkbutton(entry_frame, text="Strict Search", variable=self.strict_search, onvalue=True, offvalue=False, command=self.toggle_strict_search).grid(row=1, column=1+j//2)
         scrolled_frame = ScrolledFrame(self.search_tab)
         # create a table with enough columns and headers for each of the column names
         # it gets the column count from the database handler and the names from the patient edit form

@@ -9,60 +9,70 @@ class DB:
             {
                 "name": "patient_id",
                 "display_name": "Patient ID",
-                "type": "entry"
+                "type": "entry",
+                "width": 5
             },
             {
                 "name": "name",
                 "display_name": "Name",
                 "type": "entry",
-                "required": True
+                "required": True,
+                "width": 15
             },
             {
                 "name": "date_of_birth",
                 "display_name": "Date of Birth",
                 "type": "entry",
-                "required": True
+                "required": True,
+                "width": 10
             },
             {
                 "name": "gender",
                 "display_name": "Gender",
                 "required": True,
                 "type": "dropdown",
-                "menu_items": ["", "Male", "Female"]
+                "menu_items": ["", "Male", "Female"],
+                "width": 6
             },
             {
                 "name": "email",
                 "display_name": "E-Mail",
-                "type": "entry"
+                "type": "entry",
+                "width": 15
             },
             {
                 "name": "phone",
                 "display_name": "Phone",
-                "type": "entry"
+                "type": "entry",
+                "width": 11
             },
             {
                 "name": "post_code",
                 "display_name": "Post Code",
                 "required": True,
-                "type": "entry"
+                "type": "entry",
+                "width": 7
             },
             {
                 "name": "street",
                 "display_name": "Street",
                 "required": True,
-                "type": "entry"
+                "type": "entry",
+                "width": 15
             },
             {
                 "name": "house",
                 "display_name": "House",
                 "required": True,
                 "type": "entry",
+                "width": 10
             },
             {
                 "name": "city",
                 "display_name": "City",
                 "required": True,
-                "type": "entry"
+                "type": "entry",
+                "width": 10
             }
         ]
 
@@ -70,39 +80,45 @@ class DB:
             {
                 "name": "appointment_id",
                 "display_name": "Appointment ID",
-                "type": "entry"
+                "type": "entry",
+                "width": 4
             },
             {
                 "name": "patient_id",
                 "display_name": "Patient ID",
                 "type": "entry",
-                "required": True
+                "required": True,
+                "width": 4
             },
             {
                 "name": "practitioner",
                 "display_name": "Practitioner",
                 "type": "dropdown",
                 "menu_items": ["", "Doctor/Nurse", "Therapist"],
-                "required": True
+                "required": True,
+                "width": 12
             },
             {
                 "name": "location",
                 "display_name": "Location",
                 "type": "dropdown",
                 "menu_items": ["", "On-site", "On-line"],
-                "required": True
+                "required": True,
+                "width": 7
             },
             {
                 "name": "date",
                 "display_name": "Date",
                 "type": "entry",
-                "required": True
+                "required": True,
+                "width": 10
             },
             {
                 "name": "time",
                 "display_name": "Time",
                 "type": "entry",
-                "required": True
+                "required": True,
+                "width": 2
             }
             
         ]

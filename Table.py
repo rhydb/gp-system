@@ -4,15 +4,17 @@ from ScrolledFrame import *
 class Table(Frame):
     def __init__(self, parent, *args, rows=1, columns=1, show_headers=False, headers: list = [], widths=[], **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
-        self.widths = [10] * (columns-1)
+
+        self.widths = [10] * columns
         if widths:
             if type(widths) is int:
-                self.widths = [widths] * (columns-1)
+                self.widths = [widths] * columns
             elif type(widths) is list:
                 for i in range(len(widths)):
                     self.widths[i] = widths[i]
             else:
                 raise Exception(f"Invalid type for widths '{type(widths)}' expted int or list")
+
         if show_headers is True:
             if not headers:
                 raise Exception(f"No headers provided, even though show_headers is set to True")
@@ -30,7 +32,7 @@ class Table(Frame):
         for i in range(rows):
             self.table.append([])
             for j in range(columns):
-                self.table[i].append(Entry(self, width=self.widths[i]))
+                self.table[i].append(Entry(self, width=self.widths[j]))
 
     def grid_headers(self):
         for i in range(len(self.headers)):
@@ -90,18 +92,20 @@ class Table(Frame):
             # to the corresponding value
             self.set_cell(row_index, i, row_values[i])
     def add_row(self):
-        for i in range(self.columns):
-            self.table[i].append(Entry(self))
-            self.table[i][self.rows].grid(row=self.rows + (1 if self.headers else 0), column=i)
+        self.table.append([])
         self.rows += 1
+        for i in range(self.columns):
+            self.table[-1].append(Entry(self, width=self.widths[i])) # add an entry to the last row
+            self.table[-1][-1].grid(row=self.rows + (1 if self.headers else 0), column=i) # grid the new entry
+
     def set_row_count(self, row_count):
         if (row_count < self.rows):
             # remove rows
             for i in range(self.rows - row_count):
-                # go through every column and remove the last item until the row count is right
-                for j in range(self.columns):
-                    self.table[j][-1].destroy() # destroy the entry box to remove it from the screen
-                    self.table[j].pop() # remove the entry box from the list
+                # go through every row and remove the last item until the row count is right
+                for entry in self.table[-1]:
+                    entry.destroy() # remove the entry from the screen
+                self.table.pop() # remove the entire row from the list
         else:
             # add rows
             for _ in range(row_count - self.rows): # add the extra rows
