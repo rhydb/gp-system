@@ -39,8 +39,9 @@ class Admin(Tk):
         self.appointments_table.pack()
         appointments_scrolled_frame.grid(row=0, column=0)
         self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form)
-        Button(self.appointments_form, text="Search", command=self.search_appointment).grid(row=len(self.db.appointment_form), column=0)
-        Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=len(self.db.appointment_form), column=1)
+        Button(self.appointments_form, text="Search with Patient ID", command=self.search_appointment).grid(row=len(self.db.appointment_form), column=0)
+        Button(self.appointments_form, text="Canel Appointment", command=self.cancel_appointment).grid(row=len(self.db.appointment_form), column=1)
+        Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=len(self.db.appointment_form), column=2)
         self.appointments_form.grid(row=0, column=1)
 
         
@@ -61,22 +62,41 @@ class Admin(Tk):
                 messagebox.showerror(title="Invalid patient ID", message="The patient ID must be an integer")
                 return
             else:
-                if not self.db.b_search_patient(patient_id):
+                if not self.db.b_search(patient_id, 0, table="patients"):
                     messagebox.showerror(title="Invalid patient ID", message="There isn't a patient with that ID")
                     return
         data = {}
         for key, value in self.appointments_form.form_items.items():
             if value.get():
                 data[key] = value.get()
-        print("New appointment with ID:", self.db.insert(data, "appointments"))
+        messagebox.showinfo(title="Success", message="New appointment with ID:" + str(self.db.insert(data, "appointments")))
         
     def search_appointment(self):
-        queries = [[j, item.get()] for j, item in enumerate(self.appointments_form.form_items.values()) if item.get()]
-        results = self.db.search("appointments", queries, strict=True)
-        self.appointments_table.set_row_count(len(results))
-        for j, result in enumerate(results):
-            self.appointments_table.set_row(j, result)
+        try:
+            patient_id = int(self.appointments_form.get("patient_id"))
+        except Exception:
+            messagebox.showerror(title="Error", message="Invalid patient ID")
+        else:
+            results = self.db.search("appointments", [[1, patient_id]], strict=True)
+            if results:
+                self.appointments_table.set_row_count(len(results))
+                for j, result in enumerate(results):
+                    self.appointments_table.set_row(j, result)
+            else:
+                messagebox.showinfo(title="No results", message="There were no results for your query")
 
+    def cancel_appointment(self):
+        try:
+            appointment_id = int(self.appointments_form.get("appointment_id"))
+        except Exception:
+            messagebox.showerror(title="Error", message="Invalid appointment ID")
+        else:
+            row_number = self.db.b_search(appointment_id, 0, table="appointments", get_row_number=True)
+            if not row_number:
+                messagebox.showerror(title="Error", message="Could not find an appointment with that ID")
+                return
+            self.db.delete_row("appointments", row_number)
+            messagebox.showinfo(title="Cancelled", message="Appointment cancelled")
     def search_patient(self):
         # make a list of all the search entries that arent empty and
         # record which column they refer to - needed to search the databse
@@ -89,30 +109,6 @@ class Admin(Tk):
         else:
             messagebox.showinfo(title="No results", message="Could not find any results for that query")
 
-        
-    def create_search_form(self):
-        Label(self.search_tab, text="Search for a patient").pack()
-        entry_frame = Frame(self.search_tab) # frame to hold the entries and search button in one line
-
-        for j, item in enumerate(self.db.patient_form):
-            # create the correct widget based on the type specified
-            self.search_items.append(StringVar())# add it to the list - to get the values back later
-            if item.get("type") == "entry":
-                Entry(entry_frame, textvar=self.search_items[-1]).grid(row=0, column=j)
-            elif item.get("type") == "dropdown":
-                OptionMenu(entry_frame, self.search_items[-1], *item.get("menu_items")).grid(row=0, column=j)
-
-        entry_frame.pack()
-        # add a results label, button to search and a checkbox to toggle strict searching below the center of the table
-        Button(entry_frame, text="Search", command=self.search).grid(row=1, column=j//2)
-        scrolled_frame = ScrolledFrame(self.search_tab)
-        # create a table with enough columns and headers for each of the column names
-        # it gets the column count from the database handler and the names from the patient edit form
-        # TODO: get the column headers from the data base handler as well
-        self.search_table = Table(scrolled_frame.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["name"] for item in self.db.patient_form])
-        self.search_table.pack()
-        scrolled_frame.pack()
-        
     def save_patient(self):
         if not self.patient_form.completed_required():
             messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
@@ -144,7 +140,7 @@ class Admin(Tk):
             messagebox.showerror(title="Error", message="Patient ID must be a number")
         else:
             # casting to an integer was a success, proceed with the search
-            result = self.db.b_search_patient(patient_id)
+            result = self.db.b_search(patient_id, 0, "patients")
             if not result:
                 messagebox.showinfo(title="Info", message="Could not find a patient with that ID")
                 return
