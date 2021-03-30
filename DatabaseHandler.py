@@ -218,19 +218,20 @@ class DB:
     
     # a recursive binary search to search for a specific patient using an id
     # since the id is the primary key and is sorted a binary search is appropiate
-    def b_search_patient(self, patient_id, array=None, start=0, end=0):
+    # value is the search value and the value index is the column number the value is stored in. This is needed as binary search can only sort through one piece of data
+    def b_search(self, value, value_index, table="", array=None, start=0, end=0):
         if array: # check if this is a recursive call or the first call
             if start > end: # when this occurs the list has been searched and the item is not in the list
                 return
             mid = (end+start)//2 # the middle position
-            if patient_id == array[mid][0]:
+            if value == array[mid][value_index]:
                 return array[mid] # found the item
-            if patient_id > array[mid][0]:
-                return self.b_search_patient(patient_id, array=array, start=mid+1, end=end) # the middle is less than the search, use the right half
-            return self.b_search_patient(patient_id, array=array, start=start, end=mid-1) # the middle is greater than the search, use the left half
+            if value > array[mid][value_index]:
+                return self.b_search(value, value_index, array=array, start=mid+1, end=end) # the middle is less than the search, use the right half
+            return self.b_search(value, value_index, array=array, start=start, end=mid-1) # the middle is greater than the search, use the left half
         # it is the first call, set up the paramaters and begin the search
-        data = self.get_all("patients")
-        return self.b_search_patient(patient_id, array=data, start=0, end=len(data)-1)
+        data = self.get_all(table)
+        return self.b_search(value, value_index, array=data, start=0, end=len(data)-1)
     
     def update_patient(self, data):
         found = False
