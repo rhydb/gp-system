@@ -4,11 +4,15 @@ from ScrolledFrame import *
 class Table(Frame):
     def __init__(self, parent, *args, rows=1, columns=1, show_headers=False, headers: list = [], widths=[], **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
-        if not widths:
-            widths = [10] * (columns-1)
-        elif type(widths) is int:
-            widths = [widths] * columns
-        self.widths = widths
+        self.widths = [10] * (columns-1)
+        if widths:
+            if type(widths) is int:
+                self.widths = [widths] * (columns-1)
+            elif type(widths) is list:
+                for i in range(len(widths)):
+                    self.widths[i] = widths[i]
+            else:
+                raise Exception(f"Invalid type for widths '{type(widths)}' expted int or list")
         if show_headers is True:
             if not headers:
                 raise Exception(f"No headers provided, even though show_headers is set to True")
