@@ -219,19 +219,21 @@ class DB:
     # a recursive binary search to search for a specific patient using an id
     # since the id is the primary key and is sorted a binary search is appropiate
     # value is the search value and the value index is the column number the value is stored in. This is needed as binary search can only sort through one piece of data
-    def b_search(self, value, value_index, table="", array=None, start=0, end=0):
+    def b_search(self, value, value_index, table="", array=None, start=0, end=0, get_row_number=False):
         if array: # check if this is a recursive call or the first call
             if start > end: # when this occurs the list has been searched and the item is not in the list
                 return
             mid = (end+start)//2 # the middle position
             if value == array[mid][value_index]:
+                if get_row_number:
+                    return mid # return the row number rather than the row
                 return array[mid] # found the item
             if value > array[mid][value_index]:
-                return self.b_search(value, value_index, array=array, start=mid+1, end=end) # the middle is less than the search, use the right half
-            return self.b_search(value, value_index, array=array, start=start, end=mid-1) # the middle is greater than the search, use the left half
+                return self.b_search(value, value_index, array=array, start=mid+1, end=end, get_row_number=get_row_number) # the middle is less than the search, use the right half
+            return self.b_search(value, value_index, array=array, start=start, end=mid-1, get_row_number=get_row_number) # the middle is greater than the search, use the left half
         # it is the first call, set up the paramaters and begin the search
         data = self.get_all(table)
-        return self.b_search(value, value_index, array=data, start=0, end=len(data)-1)
+        return self.b_search(value, value_index, array=data, start=0, end=len(data)-1, get_row_number=get_row_number)
     
     def update_patient(self, data):
         found = False
