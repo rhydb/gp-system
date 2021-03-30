@@ -22,19 +22,20 @@ class Table(Frame):
         self.show_headers = show_headers
         self.rows = rows
         self.columns = columns
-        for i in range(columns):
+
+        for i in range(rows):
             self.table.append([])
-            for j in range(rows):
-                self.table[i].append(Entry(self, width=self.widths[j]))
+            for j in range(columns):
+                self.table[i].append(Entry(self, width=self.widths[i]))
 
     def grid_headers(self):
         for i in range(len(self.headers)):
             Label(self, text=self.headers[i]).grid(row=0, column=i)
 
     def grid_cells(self):
-        for i in range(self.columns):
-            for j in range(self.rows):
-                self.table[i][j].grid(row=j + (1 if self.headers else 0), column=i)
+        for i in range(self.rows):
+            for j in range(self.columns):
+                self.table[i][j].grid(row=i + (1 if self.headers else 0), column=j)
 
     def grid(self, *args, **kwargs):
         if self.show_headers:
@@ -61,9 +62,9 @@ class Table(Frame):
     def get_cell(self, column: int = 0, row: int = 0):
         return self.table[column][row].get()
 
-    def set_cell(self, column: int, row: int, value: str):
-        self.table[column][row].delete(0,END)
-        self.table[column][row].insert(0,str(value))
+    def set_cell(self, row: int, column: int, value: str):
+        self.table[row][column].delete(0,END)
+        self.table[row][column].insert(0,str(value))
 
     def set_column(self, column, value):
         if type(column) is str:
@@ -73,16 +74,17 @@ class Table(Frame):
         if type(value) is list:
             if len(value) != self.rows:
                 raise Exception(f"Invalid number of items to set column {len(value)}/{self.rows}")
-            for i in range(self.rows):
-                self.set_cell(column, i, value[i])
+            for j, item in enumerate(value):
+                self.set_cell(j, column, item)
         else:
             for i in range(self.rows):
-                self.set_cell(column, i, value)
+                self.set_cell(i, column, value)
+
     def set_row(self, row_index, row_values):
         for i in range(len(row_values)):
             # go through each column and set the specified row's entry box
             # to the corresponding value
-            self.set_cell(i, row_index, row_values[i])
+            self.set_cell(row_index, i, row_values[i])
     def add_row(self):
         for i in range(self.columns):
             self.table[i].append(Entry(self))
