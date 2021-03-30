@@ -2,8 +2,13 @@ from tkinter import *
 from ScrolledFrame import *
 
 class Table(Frame):
-    def __init__(self, parent, *args, rows=1, columns=1, show_headers=False, headers: list = [], **kwargs):
+    def __init__(self, parent, *args, rows=1, columns=1, show_headers=False, headers: list = [], widths=[], **kwargs):
         Frame.__init__(self, parent, *args, **kwargs)
+        if not widths:
+            widths = [10] * (columns-1)
+        elif type(widths) is int:
+            widths = [widths] * columns
+        self.widths = widths
         if show_headers is True:
             if not headers:
                 raise Exception(f"No headers provided, even though show_headers is set to True")
@@ -20,7 +25,7 @@ class Table(Frame):
         for i in range(columns):
             self.table.append([])
             for j in range(rows):
-                self.table[i].append(Entry(self))
+                self.table[i].append(Entry(self, width=self.widths[j]))
 
     def grid_headers(self):
         for i in range(len(self.headers)):
@@ -33,7 +38,7 @@ class Table(Frame):
 
     def grid(self, *args, **kwargs):
         if self.show_headers:
-            grid_headers()
+            self.grid_headers()
         self.grid_cells()
         Frame.grid(self, *args, **kwargs)
 

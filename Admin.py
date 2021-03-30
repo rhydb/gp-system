@@ -28,12 +28,14 @@ class Admin(Tk):
         self.patient_tab.pack()
 
         # setup for the appointments tab
-        self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form, display="inline")
+        self.appointments_form = Form(self.appointment_tab, data=self.db.appointment_form)
         Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=1, column=len(self.db.appointment_form))
         Button(self.appointments_form, text="Search", command=self.search_appointment).grid(row=1, column=len(self.db.appointment_form)+1)
         self.appointments_form.pack()
-        self.appointments_table = Table(self.appointment_tab, rows=3, columns=len(self.db.appointment_form), show_headers=True, headers=[item["display_name"] for item in self.db.appointment_form])
+        appointments_scrolled_frame = ScrolledFrame(self.appointment_tab)
+        self.appointments_table = Table(appointments_scrolled_frame, rows=3, columns=len(self.db.appointment_form), show_headers=True, headers=[item["display_name"] for item in self.db.appointment_form])
         self.appointments_table.pack()
+        appointments_scrolled_frame.pack()
 
         # setup for the search tab
         self.patient_search_frame = Frame(self)
