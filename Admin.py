@@ -16,11 +16,11 @@ class Admin(Tk):
         # these act as frames to place items into
         self.patient_tab = ttk.Frame(self.tab_control)
         self.appointment_tab = ttk.Frame(self.tab_control)
-
+        self.treatment_tab = ttk.Frame(self.tab_control)
 
         # setup for the patient tab
         patient_table_scroll = ScrolledFrame(self.patient_tab)
-        self.patient_table = Table(patient_table_scroll.interior, columns=len(self.db.patients_cols), rows=5, show_headers=True, headers=[item["display_name"] for item in self.db.patient_form], widths=[item["width"] for item in self.db.patient_form])
+        self.patient_table = Table(patient_table_scroll.interior, columns=len(self.db.patient_form), rows=5, show_headers=True, headers=[item["display_name"] for item in self.db.patient_form], widths=[item["width"] for item in self.db.patient_form])
         self.patient_table.pack()
         patient_table_scroll.grid(row=0, column=0)
 
@@ -31,7 +31,9 @@ class Admin(Tk):
         self.strict_search = False
         Checkbutton(self.patient_form, text="Strict", variable=self.strict_search, onvalue=True, offvalue=False, command=self.toggle_strict_search).grid(row=len(self.patient_form.form_items)+1, column=1)
         Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=2)
+
         self.patient_tab.pack()
+        
 
         # setup for the appointments tab
         appointments_scrolled_frame = ScrolledFrame(self.appointment_tab)
@@ -44,12 +46,61 @@ class Admin(Tk):
         Button(self.appointments_form, text="Book", command=self.book_appointment).grid(row=len(self.db.appointment_form), column=2)
         self.appointments_form.grid(row=0, column=1)
 
+         # treatments table
+        treatments_scoll = ScrolledFrame(self.treatment_tab)
+        self.treatments_table = Table(treatments_scoll.interior, rows=3, columns=len(self.db.treatments_form), show_headers=True, headers=[item.get("display_name") for item in self.db.treatments_form])
+        self.treatments_table.pack()
+
+        self.invoice = Text(self.treatment_tab)
+
+        Button(self.treatment_tab, text="Get total cost", command=lambda: messagebox.showinfo(title="Total cost", message=self.get_treatments_cost())).grid(row=0,column=0)
+        Button(self.treatment_tab, text="Create Invoice", command=self.create_invoice).grid(row=0,column=1)
+
+        search_treatment_frame = Frame(self.treatment_tab)
         
+        Label(search_treatment_frame, text="Patient ID:").grid()
+        self.treatment_patient_id = Entry(search_treatment_frame)
+        self.treatment_patient_id.grid(row=0, column=1)
+        Button(search_treatment_frame, text="Get treatments", command=self.get_treatments).grid(row=0, column=2)
+        search_treatment_frame.grid()
+        treatments_scoll.grid()
+        self.invoice.grid(row=2, column=1)
+        
+        self.treatment_tab.pack()
 
         self.tab_control.add(self.patient_tab, text="Add/Edit Patient")
         self.tab_control.add(self.appointment_tab, text="Appointments")
+        self.tab_control.add(self.treatment_tab, text="Treatments/Invoice")
         self.tab_control.pack(expand=True, fill=BOTH)
 
+    def create_invoice(self):
+        # clear the textbox
+        self.invoice.delete("0.0", END)
+        self.invoice.insert(END, f"Patient ID: {self.treatments_table.get_cell(0, 0)} Total Cost: {self.get_treatments_cost()}\n")
+        self.invoice.insert(END, f'{"Treatment":^20}{"Cost":^10}\n')
+        for i in range(self.treatments_table.rows):
+            row = self.treatments_table.get_row(i)
+            self.invoice.insert(END, f"{row[1]:<20}{row[2]:>10}\n")
+        
+    def get_treatments_cost(self):
+        all_costs = self.treatments_table.get_column("Cost") # get the entire column
+        total = sum([float(cost) for cost in all_costs if cost])
+        return total if total else "There are no treatments for that patient"
+        
+    def get_treatments(self):
+        try:
+            patient_id = int(self.treatment_patient_id.get())
+        except Exception:
+            messagebox.showerror(title="Error", message="Invalid patient ID")
+        else:
+            results = self.db.search("treatments", [[0, patient_id]], strict=True) # get all the treatments for that patient
+            if not results:
+                messagebox.showinfo(title="No results", message="There were no results for your query")
+                return
+            self.treatments_table.set_row_count(len(results))
+            for j, result in enumerate(results):
+                self.treatments_table.set_row(j, result)
+        
     def book_appointment(self):
         self.appointments_form.set("appointment_id", "")
         if not self.appointments_form.completed_required():

@@ -5,6 +5,23 @@ class DB:
         self.database = "databse.db"
         self.conn = sql.connect(self.database)
         self.cursor = self.conn.cursor()
+        
+
+       
+#####################################
+        '''
+        must check that all the tables exist before being able to access them
+        '''
+        # users table
+        self.cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS `users` (
+                username PRIMARY KEY,
+                password TEXT NOT NULL,
+                type TEXT
+            )
+        ''')
+        
+        # patients table
         self.patient_form = [
             {
                 "name": "patient_id",
@@ -75,7 +92,32 @@ class DB:
                 "width": 10
             }
         ]
+        self.cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS `patients` (
+                patient_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                name TEXT NOT NULL,
+                date_of_birth DATE NOT NULL,
+                gender TEXT,
+                email TEXT,
+                phone TEXT,
+                post_code TEXT NOT NULL,
+                street TEXT NOT NULL,
+                house TEXT NOT NULL,
+                city TEXT NOT NULL
+            )
+        ''')
 
+        # appointments table
+        self.cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS `appointments` (
+                appointment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                patient_id INTEGER NOT NULL,
+                practitioner TEXT NOT NULL,
+                location TEXT NOT NULL,
+                date DATE NOT NULL,
+                time INT NOT NULL
+            )
+        ''')
         self.appointment_form = [
             {
                 "name": "appointment_id",
@@ -122,49 +164,37 @@ class DB:
             }
             
         ]
-#####################################
-        '''
-        must check that all the tables exist before being able to access them
-        '''
-        # users table
+
+        # treatments table
+        self.treatments_form = [
+            {
+                "name": "patient_id",
+                "display_name": "Patient ID",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "treatment",
+                "display_name": "Treatment",
+                "type": "entry",
+                "required": True
+            },
+            {
+                "name": "cost",
+                "display_name": "Cost",
+                "type": "entry",
+                "requred": True
+            }
+        ]
+        # self.insert({"patient_id": 1, "treatment": "Xanax", "cost": 15.98}, "treatments")
         self.cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS `users` (
-                username PRIMARY KEY,
-                password TEXT NOT NULL,
-                type TEXT
+            CREATE TABLE IF NOT EXISTS `treatments` (
+                patient_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                treatment TEXT NOT NULL,
+                cost REAL NOT NULL
             )
         ''')
         
-        # tuple to index the columns specified when editing the databse
-        self.patients_cols = ("patient_id", "name", "date_of_birth", "gender", "email", "phone", "post_code", "street", "house", "city")
-        # patients table
-        self.cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS `patients` (
-                patient_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                name TEXT NOT NULL,
-                date_of_birth DATE NOT NULL,
-                gender TEXT,
-                email TEXT,
-                phone TEXT,
-                post_code TEXT NOT NULL,
-                street TEXT NOT NULL,
-                house TEXT NOT NULL,
-                city TEXT NOT NULL
-            )
-        ''')
-
-        # appointments table
-        self.appointment_cols = ("appointment_id", "patient_id", "pracitioner", "location", "date", "time")
-        self.cursor.execute(f'''
-            CREATE TABLE IF NOT EXISTS `appointments` (
-                appointment_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                patient_id INTEGER NOT NULL,
-                practitioner TEXT NOT NULL,
-                location TEXT NOT NULL,
-                date DATE NOT NULL,
-                time INT NOT NULL
-            )
-        ''')
         self.conn.commit() # save to the database
 ##################################### 
 

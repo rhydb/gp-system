@@ -57,13 +57,13 @@ class Table(Frame):
     def get_header_index(self, header):
             return self.headers.index(header)
     def get_row(self, row: int):
-        return [column[row].get() for column in self.table]
+        return [cell.get() for cell in self.table[row]]
     def get_column(self, column):
         if type(column) is str:
             column = self.get_header_index(column)
         elif type(column) is not int:
             raise Exception(f"Invalid type for column '{type(column)}'")
-        return [cell.get() for cell in self.table[column]]
+        return [row[column].get() for row in self.table]
 
     def get_cell(self, column: int = 0, row: int = 0):
         return self.table[column][row].get()
