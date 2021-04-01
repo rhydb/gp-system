@@ -87,7 +87,7 @@ class Table(Frame):
                 self.set_cell(i, column, value)
 
     def set_row(self, row_index, row_values):
-        for i in range(len(row_values)):
+        for i in range(min(len(row_values), self.columns)):
             # go through each column and set the specified row's entry box
             # to the corresponding value
             self.set_cell(row_index, i, row_values[i])

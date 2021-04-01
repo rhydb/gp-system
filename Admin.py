@@ -31,9 +31,9 @@ class Admin(Tk):
         self.strict_search = False
         Checkbutton(self.patient_form, text="Strict", variable=self.strict_search, onvalue=True, offvalue=False, command=self.toggle_strict_search).grid(row=len(self.patient_form.form_items)+1, column=1)
         Button(self.patient_form, text="Save/Register", command=self.save_patient).grid(row=len(self.patient_form.form_items), column=2)
+        Label(self.patient_form, text="Leave the Patient ID blank to create a new patient").grid()
 
         self.patient_tab.pack()
-        
 
         # setup for the appointments tab
         appointments_scrolled_frame = ScrolledFrame(self.appointment_tab)
@@ -176,7 +176,14 @@ class Admin(Tk):
                 messagebox.showerror(title="Error", message="Invalid Patient ID")
             else:
                 # id was provided and the id was an integer
-                messagebox.showinfo(title="Info", message=self.db.update_patient(data))
+                messagebox.showinfo(title="Info", \
+                                    message="Saved" if \
+                                    self.db.update(\
+                                                   data.get("patient_id"), \
+                                                   "patients", \
+                                                   [[self.db.column_indexes["patients"].get(column), data.get(column)] \
+                                                    for column in data.keys()]) \
+                                    else "There was an error saving")
         else:
             # patient id was omitted -> make a new patient
             messagebox.showinfo(title="Info", message="New Patient with ID: " + str(self.db.insert(data, "patients")))

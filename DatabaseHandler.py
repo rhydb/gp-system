@@ -6,8 +6,6 @@ class DB:
         self.conn = sql.connect(self.database)
         self.cursor = self.conn.cursor()
         
-
-       
 #####################################
         '''
         must check that all the tables exist before being able to access them
@@ -103,7 +101,11 @@ class DB:
                 post_code TEXT NOT NULL,
                 street TEXT NOT NULL,
                 house TEXT NOT NULL,
-                city TEXT NOT NULL
+                city TEXT NOT NULL,
+                history TEXT,
+                details TEXT,
+                referals TEXT,
+                tests TEXT
             )
         ''')
 
@@ -186,7 +188,6 @@ class DB:
                 "requred": True
             }
         ]
-        # self.insert({"patient_id": 1, "treatment": "Xanax", "cost": 15.98}, "treatments")
         self.cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS `treatments` (
                 patient_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -194,6 +195,39 @@ class DB:
                 cost REAL NOT NULL
             )
         ''')
+
+        # dictionary to store the index for each column for each table
+        self.column_indexes = {
+            "patients": {
+                "patient_id": 0,
+                "name": 1,
+                "date_of_birth": 2,
+                "gender": 3,
+                "email": 4,
+                "phone": 5,
+                "post_code": 6,
+                "street": 7,
+                "house": 8,
+                "city": 9,
+                "history": 10,
+                "details": 11,
+                "referals": 12,
+                "tests": 13
+            },
+            "appointments": {
+                "appointment_id": 0,
+                "patient_id": 1,
+                "pracitioner": 2,
+                "location": 3,
+                "date": 4,
+                "time": 5
+            },
+            "treatments": {
+                "patient_id": 0,
+                "treatment": 1,
+                "cost": 2
+            }
+        }
         
         self.conn.commit() # save to the database
 ##################################### 
@@ -263,7 +297,9 @@ class DB:
             return self.b_search(value, value_index, array=array, start=start, end=mid-1, get_row_number=get_row_number) # the middle is greater than the search, use the left half
         # it is the first call, set up the paramaters and begin the search
         data = self.get_all(table)
-        return self.b_search(value, value_index, array=data, start=0, end=len(data)-1, get_row_number=get_row_number)
+        if data:
+            return self.b_search(value, value_index, array=data, start=0, end=len(data)-1, get_row_number=get_row_number)
+        return None
     
     def update_patient(self, data):
         found = False
@@ -278,12 +314,9 @@ class DB:
                 # found the patient
                 found = True
                 for column, value in data.items():
-                     # go through each column specified in the arguments and update the correct column
-                    try:
-                        # try and find what column the header is
-                        index = self.patients_cols.index(column) 
-                    except Exception:
-                        # the column isnt valid
+                    # try and find what column the header is
+                    index = self.column_indexes.get(column)
+                    if index is None: # failed to get the column - invalid
                         return f"Invalid column header: {column}"
                     else:
                         row[index] = value # update the column with the new value
@@ -299,6 +332,29 @@ class DB:
             ''')
         self.conn.commit() # save to the database
         return "Saved" if found else "Could not find that patient"
+
+    def update(self, primary_key, table, values):
+        row_number = self.b_search(primary_key, 0, table=table, get_row_number=True) # perform a binary search on the table to find which row it is
+        if row_number is None:
+            return False # failed to find the correct row in the table
+        data = self.get_all(table)
+        for index, value in values: # values is an array of 2-items array e.g: [[column_index, new_value]]
+            data[row_number] = list(data[row_number]) # cast to list to allow editing
+            data[row_number][index] = value
+
+        # delete everything to re-add the updates row in the same place
+        self.cursor.execute(f'''
+            DELETE FROM `patients`
+        ''')
+
+        for row in data:
+            self.cursor.execute(f'''
+                INSERT INTO `{table}`
+                VALUES {tuple(row)}
+            ''')
+        self.conn.commit()
+        return True
+        
 
     def insert(self, data, table):
         # attempt to add the patient into the table
@@ -331,9 +387,12 @@ class DB:
         return "Invalid username or password" # invalid login
 
     def get_all(self, table):
-        self.cursor.execute(f'''
-            SELECT * FROM `{table}`
-        ''')
+        try:
+            self.cursor.execute(f'''
+                SELECT * FROM `{table}`
+            ''')
+        except Exception:
+            return None
         return self.cursor.fetchall()
         
     def destroy(self):
