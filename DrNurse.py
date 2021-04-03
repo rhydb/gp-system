@@ -64,26 +64,18 @@ class DrNurse(Tk):
                 return
             self.patient_id = patient_id
             self.clear_all()
-            self.history.insert(INSERT, results[self.db.column_indexes["patients"]["history"]])
-            self.details.insert(INSERT, results[self.db.column_indexes["patients"]["details"]])
-            self.referals.insert(INSERT, results[self.db.column_indexes["patients"]["referals"]])
-            self.tests.insert(INSERT, results[self.db.column_indexes["patients"]["tests"]])
-            data = [
-                [self.db.column_indexes["patients"]["history"], self.history.get("1.0", END)],
-                [self.db.column_indexes["patients"]["details"], self.details.get("1.0", END)],
-                [self.db.column_indexes["patients"]["referals"], self.referals.get("1.0", END)],
-                [self.db.column_indexes["patients"]["tests"], self.tests.get("1.0", END)]
-            ]
-            print(data)   
+            self.history.insert(INSERT, results[self.db.column_indexes["patients"]["history"]] if results[self.db.column_indexes["patients"]["history"]] else '')
+            self.details.insert(INSERT, results[self.db.column_indexes["patients"]["details"]] if results[self.db.column_indexes["patients"]["details"]] else '')
+            self.referals.insert(INSERT, results[self.db.column_indexes["patients"]["referals"]] if results[self.db.column_indexes["patients"]["referals"]] else '')
+            self.tests.insert(INSERT, results[self.db.column_indexes["patients"]["tests"]] if results[self.db.column_indexes["patients"]["tests"]] else '')
         
     def save_all(self):
         data = [
-            [self.db.column_indexes["patients"]["history"], self.history.get("1.0", END)],
-            [self.db.column_indexes["patients"]["details"], self.details.get("1.0", END)],
-            [self.db.column_indexes["patients"]["referals"], self.referals.get("1.0", END)],
-            [self.db.column_indexes["patients"]["tests"], self.tests.get("1.0", END)]
+            [self.db.column_indexes["patients"]["history"], self.history.get("1.0", END).replace("\\", "backslash!")],
+            [self.db.column_indexes["patients"]["details"], self.details.get("1.0", END).replace("\\", "backslash!")],
+            [self.db.column_indexes["patients"]["referals"], self.referals.get("1.0", END).replace("\\", "backslash!")],
+            [self.db.column_indexes["patients"]["tests"], self.tests.get("1.0", END).replace("\\", "backslash!")]
         ]
-        print(data)
         self.db.update(self.patient_id, "patients", data)
         messagebox.showinfo(title="Success", message="Saved")
         

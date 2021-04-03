@@ -350,8 +350,8 @@ class DB:
         for row in data:
             self.cursor.execute(f'''
                 INSERT INTO `{table}`
-                VALUES {tuple(row)}
-            ''')
+                VALUES ({",".join("?" * len(row))})
+            ''', tuple(row))
         self.conn.commit()
         return True
         
@@ -363,8 +363,8 @@ class DB:
         self.cursor.execute(f'''
             INSERT OR IGNORE INTO `{table}`
             {tuple(data)}
-            VALUES {tuple(data.values())}
-        ''')
+            VALUES ({",".join("?" * len(data.values()))})
+        ''', tuple(data.values()))
         self.conn.commit() # save to the database
         return self.cursor.lastrowid
 
