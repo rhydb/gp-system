@@ -6,10 +6,6 @@ class DB:
         self.conn = sql.connect(self.database)
         self.cursor = self.conn.cursor()
         
-#####################################
-        '''
-        must check that all the tables exist before being able to access them
-        '''
         # users table
         self.cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS `users` (
@@ -190,13 +186,22 @@ class DB:
         ]
         self.cursor.execute(f'''
             CREATE TABLE IF NOT EXISTS `treatments` (
-                patient_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                patient_id INTEGER,
                 treatment TEXT NOT NULL,
                 cost REAL NOT NULL
             )
         ''')
 
         # dictionary to store the index for each column for each table
+        
+        self.cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS `therapists` (
+                patient_id INTEGER,
+                username TEXT,
+                record TEXT
+            )
+        ''')
+
         self.column_indexes = {
             "patients": {
                 "patient_id": 0,
@@ -226,11 +231,15 @@ class DB:
                 "patient_id": 0,
                 "treatment": 1,
                 "cost": 2
+            },
+            "therapists": {
+                "patient_id": 0,
+                "username": 1,
+                "records": 2
             }
         }
-        
+
         self.conn.commit() # save to the database
-##################################### 
 
     def delete_row(self, table, row):
         everything = self.get_all(table)
@@ -355,6 +364,31 @@ class DB:
         self.conn.commit()
         return True
         
+    def update_unsorted(self, table, criteria: list, data: list, only_first=False):
+        everything = self.get_all(table)
+        for row in range(len(everything)):
+            everything[row] = list(everything[row])
+            good = True
+            for item in criteria:
+                if everything[row][item[0]] != item[1]:
+                    good = False
+                    break
+            if good:
+                for item in data:
+                    everything[row][item[0]] = item[1]
+                if only_first:
+                    break
+        self.cursor.execute(f'''
+            DELETE FROM `{table}`
+        ''')
+        for row in everything:
+            self.cursor.execute(f'''
+                INSERT INTO `{table}`
+                VALUES ({",".join("?" * len(row))})
+            ''', tuple(row))
+        self.conn.commit()
+        
+                
 
     def insert(self, data, table):
         # attempt to add the patient into the table
