@@ -238,7 +238,19 @@ class DB:
                 "records": 2
             }
         }
-
+         
+        self.cursor.execute(f'''
+            INSERT OR IGNORE INTO users
+            VALUES ('admin', 'admin', 'admin')
+        ''') 
+        self.cursor.execute(f'''
+            INSERT OR IGNORE INTO users
+            VALUES ('dr', 'dr', 'doctor')
+        ''')
+        self.cursor.execute(f'''
+            INSERT OR IGNORE INTO users
+            VALUES ('therapist', 'therapist', 'therapist')
+        ''')
         self.conn.commit() # save to the database
 
     def delete_row(self, table, row):

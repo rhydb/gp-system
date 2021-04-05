@@ -2,6 +2,8 @@ from tkinter import *
 from tkinter import messagebox
 from DatabaseHandler import DB
 from Admin import Admin
+from DrNurse import DrNurse
+from Therapist import Therapist
 # class to contain login window
 # __init__ gets passed the other menus that should open on a successful login
 class Login(Tk):
@@ -35,9 +37,8 @@ class Login(Tk):
             self.destroy()
             self.db.destroy()
             if login_result == "admin":
-                admin = Admin()
-                admin.mainloop()
+                Admin().mainloop()
             elif login_result == "doctor" or login_result == "nurse":
-                print("NURSE/ DCOTOR")
+                DrNurse().mainloop()
             elif login_result == "therapist":
-                print("Therapist!!!")
+                Therapist(username).mainloop()
