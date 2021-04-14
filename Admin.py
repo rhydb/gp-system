@@ -1,25 +1,27 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from DatabaseHandler import DB
-from Table import Table
-from Form import Form
-from ScrolledFrame import ScrolledFrame
+from DatabaseHandler import DB # database handler to interact with the datbase
+from Table import Table # to create tables
+from Form import Form # to create widgets from a dictionary
+from ScrolledFrame import ScrolledFrame # to add scrollbars to the tables
+from DateValidator import is_valid_date # used to validate the dates that are entered
 
-class Admin(Tk):
+class Admin(Tk): # admin window inherits from the Tk() obejct
     def __init__(self, *args, **kwargs):
-        Tk.__init__(self, *args, **kwargs)
-        self.db = DB() # connect to the database
+        Tk.__init__(self, *args, **kwargs) # call the Tk() object that this inherits from
+        self.db = DB() # database handler to interact with the database
 
         # create the tabs
         self.tab_control = ttk.Notebook(self) # the tab manager that holds each 'button' to switch tab
-        # these act as frames to place items into
+        # these act as frames to place items into the seperate tabs
         self.patient_tab = ttk.Frame(self.tab_control)
         self.appointment_tab = ttk.Frame(self.tab_control)
         self.treatment_tab = ttk.Frame(self.tab_control)
 
         # setup for the patient tab
-        patient_table_scroll = ScrolledFrame(self.patient_tab)
+        patient_table_scroll = ScrolledFrame(self.patient_tab) # creates a frame with a scrollbar
+        # create a table 
         self.patient_table = Table(patient_table_scroll.interior, columns=len(self.db.patient_form), rows=5, show_headers=True, headers=[item["display_name"] for item in self.db.patient_form], widths=[item["width"] for item in self.db.patient_form])
         self.patient_table.pack()
         patient_table_scroll.grid(row=0, column=0)
@@ -106,6 +108,10 @@ class Admin(Tk):
         if not self.appointments_form.completed_required():
             messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
             return
+        date = self.appointments_form.form_items["date"].get()
+        if date and not is_valid_date(date):
+            messagebox.showerror(title="Invalid date", message="Invalid date. The date should be in the format dd-mm-yyyy")
+            return
         if self.appointments_form.get("patient_id"):
             try:
                 patient_id = int(self.appointments_form.get("patient_id"))
@@ -148,9 +154,14 @@ class Admin(Tk):
                 return
             self.db.delete_row("appointments", row_number)
             messagebox.showinfo(title="Cancelled", message="Appointment cancelled")
+
     def search_patient(self):
         # make a list of all the search entries that arent empty and
         # record which column they refer to - needed to search the databse
+        date = self.patient_form.form_items["date_of_birth"].get()
+        if date and not is_valid_date(date):
+            messagebox.showerror(title="Invalid date", message="Invalid date. The date should be in the format dd-mm-yyyy")
+            return
         queries = [[j, item.get()] for j, item in enumerate(self.patient_form.form_items.values()) if item.get()]
         results = self.db.search("patients", queries, strict=self.strict_search)
         if results:
@@ -163,6 +174,10 @@ class Admin(Tk):
     def save_patient(self):
         if not self.patient_form.completed_required():
             messagebox.showerror(title="Error", message="Please fill in all nescessary entries (marked with *)")
+            return
+        date = self.patient_form.form_items["date_of_birth"].get()
+        if date and not is_valid_date(date):
+            messagebox.showerror(title="Invalid date", message="Invalid date. The date should be in the format dd-mm-yyyy")
             return
         data = {}
         for key, value in self.patient_form.form_items.items():
@@ -178,11 +193,17 @@ class Admin(Tk):
                 # id was provided and the id was an integer
                 messagebox.showinfo(title="Info", \
                                     message="Saved" if \
-                                    self.db.update(\
-                                                   data.get("patient_id"), \
-                                                   "patients", \
-                                                   [[self.db.column_indexes["patients"].get(column), data.get(column)] \
-                                                    for column in data.keys()]) \
+                                    self.db.update(
+                                        data.get("patient_id"),
+                                        "patients",
+                                        [
+                                            [
+                                                self.db.column_indexes["patients"].get(column),
+                                                data.get(column)
+                                            ]
+                                            for column in data.keys()
+                                        ]
+                                    )
                                     else "There was an error saving")
         else:
             # patient id was omitted -> make a new patient

@@ -32,7 +32,7 @@ class DB:
             },
             {
                 "name": "date_of_birth",
-                "display_name": "Date of Birth",
+                "display_name": "Date of Birth\n(dd-mm-yyyy)",
                 "type": "entry",
                 "required": True,
                 "width": 10
@@ -148,7 +148,7 @@ class DB:
             },
             {
                 "name": "date",
-                "display_name": "Date",
+                "display_name": "Date\n(dd-mm-yyyy)",
                 "type": "entry",
                 "required": True,
                 "width": 10
