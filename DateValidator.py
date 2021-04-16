@@ -7,7 +7,10 @@ def is_leap_year(year: int):
     return year % 400 == 0 or year % 4 == 0 and year % 100 != 0
 
 def is_valid_date(date: str) -> bool:
-    CURRENT_YEAR = datetime.datetime.now().year
+    CURRENT_DATE =  datetime.datetime.now()
+    CURRENT_YEAR = CURRENT_DATE.year
+    CURRENT_MONTH = CURRENT_DATE.month
+    CURRENT_DAY = CURRENT_DATE.day
     YEAR_RANGE = 150 # oldest year is 100 years before
     # date must be in the format dd-mm-yyyy
     # seperated by - and all must be integer
