@@ -1,16 +1,19 @@
 from tkinter import *
-
+'''
+a scrolled frame class that can create a frame with a scrollbar
+used instead of stretching the window to fit things
+'''
 class ScrolledFrame(Frame):
     def __init__(self, parent, *args, **kw):
         Frame.__init__(self, parent, *args, **kw)            
 
         # create a canvas object and a vertical scrollbar for scrolling it
-        vscrollbar = Scrollbar(self, orient=VERTICAL)
-        vscrollbar.pack(fill=Y, side=RIGHT, expand=FALSE)
+        scroll_bar = Scrollbar(self, orient=VERTICAL)
+        scroll_bar.pack(fill=Y, side=RIGHT, expand=FALSE)
         canvas = Canvas(self, bd=0, highlightthickness=0,
-                        yscrollcommand=vscrollbar.set)
+                        yscrollcommand=scroll_bar.set)
         canvas.pack(side=LEFT, fill=BOTH, expand=TRUE)
-        vscrollbar.config(command=canvas.yview)
+        scroll_bar.config(command=canvas.yview)
 
         # reset the view
         canvas.xview_moveto(0)

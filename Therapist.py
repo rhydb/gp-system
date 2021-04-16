@@ -1,10 +1,11 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from DatabaseHandler import DB
+from DatabaseHandler import DB # this will be used to connect to the database file
+# these modules will create custom forms and tables
 from Table import Table
 from Form import Form
-from ScrolledFrame import ScrolledFrame
+from ScrolledFrame import ScrolledFrame # to add scrollbars to things
 
 class Therapist(Tk): # create a class for the window that inherits from the Tk object
     def __init__(self, username, *args, **kwargs):
@@ -134,39 +135,40 @@ class Therapist(Tk): # create a class for the window that inherits from the Tk o
         try:
             patient_id = int(self.patient_id_entry.get()) # try and cast it to an integer
         except Exception:
-            # the patient id is not a number
+            # the patient id is not a number exists
             messagebox.showerror(title="Invalid Patient ID", message="The patient ID must be a number")
         else:
             # nothing went wrong
             # search for the patient in the patients table
             result = self.db.b_search(patient_id, self.db.column_indexes["patients"]["patient_id"], table="patients")
             if not result:
-                # the patient does not exist
+                # the patient does not exist in the patients tables, display a messagebox with the error
                 messagebox.showinfo(title="Invalid Patient ID", message="There is no patient with that ID")
                 return
-            # the patient is valid
+            # the patient id is valid and the patient
             result = self.db.search("therapists", [[self.db.column_indexes["therapists"]["patient_id"], patient_id], [self.db.column_indexes["therapists"]["username"], self.username]], strict=True)
             if not result:
-                # the patient has no records with this therapist
+                # the patient has no records with this therapist so create a blank record
                 self.db.insert({
                     "patient_id": patient_id,
                     "username": self.username,
                     "record": ""
                 }, "therapists")
-                messagebox.showinfo(title="Record created", message="That patient did not have a record with you - created one")
+                messagebox.showinfo(title="Record created", message="That patient did not have a record with you - created one") # let the user know what happened
             else:
                 # update the patient's treatments
-                if not self.treatment_name.get():
-                    messagebox.showerror(title="Invalid treatment name", message="Please enter a treatment name")
+                if not self.treatment_name.get(): # the treatment name was blank se
+                    messagebox.showerror(title="Invalid treatment name", message="Please enter a treatment name") # display the error
                     return
-                try:
+                try: # get the tratment cost and try to cast to a float
                     cost = float(self.treatment_cost.get())
-                except Exception:
-                    messagebox.showerror(title="Invalid cost", message="Cost must be a number")
+                except Exception: # catch any errors that happen when casting to a float
+                    messagebox.showerror(title="Invalid cost", message="Cost must be a number") # let the user know the error
                 else:
-                    if cost < 0:
-                        messagebox.showerror(title="Invalid cost", message="Cost must be > 0")
+                    if cost < 0: # the cost cannot be negative
+                        messagebox.showerror(title="Invalid cost", message="Cost must be greater than 0") # let the user know
                         return
+                    # the treatment name is not blank and the cost is valid, insert the tratment into the database
                     self.db.insert({
                         "patient_id": patient_id,
                         "treatment": self.treatment_name.get(),
